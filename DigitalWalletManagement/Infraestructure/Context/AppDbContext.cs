@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DigitalWalletManagement.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace DigitalWalletManagement.Infraestructure.Context
 {
@@ -8,18 +9,18 @@ namespace DigitalWalletManagement.Infraestructure.Context
         {
         }
 
-        public DbSet<Domain.Entities.Wallet> Wallets { get; set; } = null!;
-        public DbSet<Domain.Entities.User> Users { get; set; } = null!;
-        public DbSet<Domain.Entities.WalletTransaction> WalletTransactions { get; set; } = null!;
+        public DbSet<Wallet> Wallets { get; set; } = null!;
+        public DbSet<User> Users { get; set; } = null!;
+        public DbSet<WalletTransaction> WalletTransactions { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Domain.Entities.User>()
+            modelBuilder.Entity<User>()
                 .HasMany(u => u.Wallets)
                 .WithOne(w => w.User)
                 .HasForeignKey(w => w.UserId);
 
-            modelBuilder.Entity<Domain.Entities.Wallet>()
+            modelBuilder.Entity<Wallet>()
                 .HasMany(w => w.Transactions)
                 .WithOne(t => t.Wallet)
                 .HasForeignKey(t => t.WalletId);

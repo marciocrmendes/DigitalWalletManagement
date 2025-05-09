@@ -1,6 +1,6 @@
-﻿namespace DigitalWalletManagement.Domain.Entities
+﻿namespace DigitalWalletManagement.Entities
 {
-    public class User : Entity
+    public class User : BaseEntity
     {
         public required string Name { get; set; }
         public required string Email { get; set; }

@@ -1,8 +1,8 @@
 ﻿using DigitalWalletManagement.Commons;
 
-namespace DigitalWalletManagement.Domain.Entities
+namespace DigitalWalletManagement.Entities
 {
-    public class Wallet : Entity
+    public class Wallet : BaseEntity
     {
         public required Guid UserId { get; set; }
         public required string Name { get; set; }

@@ -1,8 +1,8 @@
 ﻿using DigitalWalletManagement.Commons;
 
-namespace DigitalWalletManagement.Domain.Entities
+namespace DigitalWalletManagement.Entities
 {
-    public class WalletTransaction : Entity
+    public class WalletTransaction : BaseEntity
     {
         public Guid WalletId { get; set; }
         public decimal Amount { get; set; }
