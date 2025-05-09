@@ -3,27 +3,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DigitalWalletManagement.Infraestructure.Context
 {
-    public sealed class AppDbContext : DbContext
+    public sealed class AppDbContext(DbContextOptions options) : DbContext(options)
     {
-        public AppDbContext(DbContextOptions options) : base(options)
-        {
-        }
-
         public DbSet<Wallet> Wallets { get; set; } = null!;
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<WalletTransaction> WalletTransactions { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.Wallets)
-                .WithOne(w => w.User)
-                .HasForeignKey(w => w.UserId);
-
-            modelBuilder.Entity<Wallet>()
-                .HasMany(w => w.Transactions)
-                .WithOne(t => t.Wallet)
-                .HasForeignKey(t => t.WalletId);
+            modelBuilder.ApplyConfigurationsFromAssembly(AppAssembly.Assembly);
+            base.OnModelCreating(modelBuilder);
         }
     }
 }

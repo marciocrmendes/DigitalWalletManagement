@@ -1,4 +1,4 @@
-﻿using DigitalWalletManagement.Commons;
+﻿using DigitalWalletManagement.Commons.Enums;
 
 namespace DigitalWalletManagement.Entities
 {

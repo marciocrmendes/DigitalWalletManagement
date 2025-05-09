@@ -1,6 +1,8 @@
-﻿namespace DigitalWalletManagement.Entities
+﻿using DigitalWalletManagement.Entities.Interfaces;
+
+namespace DigitalWalletManagement.Entities
 {
-    public abstract class BaseEntity
+    public abstract class BaseEntity : IIdentifiableEntity, IAuditableEntity
     {
         public Guid Id { get; set; }
         public Guid CreatedBy { get; set; }

@@ -1,4 +1,4 @@
-﻿namespace DigitalWalletManagement.Commons
+﻿namespace DigitalWalletManagement.Commons.Enums
 {
     public enum AvailableCurrencyEnum
     {

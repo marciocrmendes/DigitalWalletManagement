@@ -1,23 +1,12 @@
-﻿using DigitalWalletManagement.Entities;
+﻿using DigitalWalletManagement.Entities.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace DigitalWalletManagement.Infraestructure.Interceptors
 {
-    public class AuditableEntityInterceptor : SaveChangesInterceptor
+    public class AuditableEntityInterceptor(TimeProvider dateTime) : SaveChangesInterceptor
     {
-        private readonly IUser _user;
-        private readonly TimeProvider _dateTime;
-
-        public AuditableEntityInterceptor(
-            IUser user,
-            TimeProvider dateTime)
-        {
-            _user = user;
-            _dateTime = dateTime;
-        }
-
         public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
         {
             UpdateEntities(eventData.Context);
@@ -25,7 +14,9 @@ namespace DigitalWalletManagement.Infraestructure.Interceptors
             return base.SavingChanges(eventData, result);
         }
 
-        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, 
+            InterceptionResult<int> result, 
+            CancellationToken cancellationToken = default)
         {
             UpdateEntities(eventData.Context);
 
@@ -36,20 +27,20 @@ namespace DigitalWalletManagement.Infraestructure.Interceptors
         {
             if (context == null) return;
 
-            foreach (var entry in context.ChangeTracker.Entries<BaseEntity>())
+            foreach (var entry in context.ChangeTracker.Entries<IAuditableEntity>())
             {
                 if (entry.State is EntityState.Added or EntityState.Modified || entry.HasChangedOwnedEntities())
                 {
-                    var utcNow = _dateTime.GetUtcNow();
+                    var utcNow = dateTime.GetUtcNow();
 
                     if (entry.State == EntityState.Added)
                     {
-                        entry.Entity.CreatedBy = _user.Id;
-                        entry.Entity.CreatedAt = utcNow;
+                        entry.Entity.CreatedBy = Guid.NewGuid();//_user.Id;
+                        entry.Entity.CreatedAt = utcNow.Date;
                     }
 
-                    entry.Entity.LastModifiedBy = _user.Id;
-                    entry.Entity.LastModified = utcNow;
+                    entry.Entity.UpdatedBy = Guid.NewGuid();
+                    entry.Entity.UpdatedAt = utcNow.Date;
                 }
             }
         }
