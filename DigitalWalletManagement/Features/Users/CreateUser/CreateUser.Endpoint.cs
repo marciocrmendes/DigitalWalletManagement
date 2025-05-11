@@ -9,6 +9,7 @@ namespace DigitalWalletManagement.Features.Users.CreateUser
             Post("/api/user/create");
             AllowAnonymous();
             Description(x => x
+                .WithTags("Users")
                 .WithName("Create User")
                 .Produces<CreateUserResponse>(StatusCodes.Status200OK)
                 .Produces(StatusCodes.Status400BadRequest)

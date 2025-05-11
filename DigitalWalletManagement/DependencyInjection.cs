@@ -1,6 +1,7 @@
 ﻿using Ardalis.GuardClauses;
 using DigitalWalletManagement.Commons.Options;
 using DigitalWalletManagement.Entities;
+using DigitalWalletManagement.Features.Identity.Providers;
 using DigitalWalletManagement.Infraestructure;
 using DigitalWalletManagement.Infraestructure.Context;
 using DigitalWalletManagement.Infraestructure.Interceptors;
@@ -10,6 +11,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 
@@ -17,18 +20,23 @@ namespace DigitalWalletManagement
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddInfraDependencies(this IServiceCollection services, 
+        public static IServiceCollection AddApplicationConfiguration(this IServiceCollection services, 
             IConfiguration configuration)
         {
             services
                 .AddDbContextConfiguration(configuration)
-                .AddIdentitySecurity(configuration);
+                .AddIdentitySecurity(configuration)
+                .AddOptionsConfiguration(configuration)
+                .AddSwaggerConfiguration();
 
-            services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+            services
+                .AddScoped<SignInProvider>()
+                .AddScoped<TokenProvider>();
 
             services
                 .AddScoped<UserRepository>()
-                .AddScoped<WalletRepository>();
+                .AddScoped<WalletRepository>()
+                .AddScoped<RoleRepository>();
 
             return services;
         }
@@ -60,6 +68,7 @@ namespace DigitalWalletManagement
             IConfiguration configuration)
         {
             services
+                .AddJwtSecurity(configuration)
                 .AddIdentityApiEndpoints<User>(options =>
                 {
                     options.Password.RequireDigit = true;
@@ -75,8 +84,6 @@ namespace DigitalWalletManagement
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
 
-            services.AddJwtSecurity(configuration);
-
             return services;
         }
 
@@ -84,7 +91,7 @@ namespace DigitalWalletManagement
         {
             var jwtSection = configuration.GetSection("JwtSettings");
             var securityKey = Encoding.UTF8.GetBytes(
-                jwtSection["SecurityKey"] ?? throw new InvalidOperationException("JWT SecurityKey is not configured."));
+                jwtSection["TokenSecurityKey"] ?? throw new InvalidOperationException("JWT SecurityKey is not configured."));
 
             services
                 .AddAuthorization()
@@ -129,6 +136,60 @@ namespace DigitalWalletManagement
                         //}
                     };
                 });
+
+            return services;
+        }
+
+        private static IServiceCollection AddOptionsConfiguration(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+
+            return services;
+        }
+
+        private static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services)
+        {
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Digital Wallet",
+                    Version = "v1",
+                    Description = "Digital Wallet API",
+                });
+
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {your_token_without_bearer}\"",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT"
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
+
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                if (File.Exists(xmlPath))
+                {
+                    c.IncludeXmlComments(xmlPath);
+                }
+            });
 
             return services;
         }

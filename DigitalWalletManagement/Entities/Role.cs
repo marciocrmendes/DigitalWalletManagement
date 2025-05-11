@@ -2,7 +2,8 @@
 
 namespace DigitalWalletManagement.Entities
 {
-    public class Role : IdentityRole<int>
+    public class Role : IdentityRole<Guid>
     {
+        public virtual ICollection<User> Users { get; set; } = [];
     }
 }

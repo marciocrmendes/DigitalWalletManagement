@@ -8,15 +8,24 @@ var configuration = builder.Configuration;
 
 services
     .AddFastEndpoints()
-    .AddInfraDependencies(configuration)
-    .AddOpenApi();
+    .AddOpenApi()
+    .AddApplicationConfiguration(configuration);
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "TelehealthCenter API v1");
+    });
 }
+
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseFastEndpoints()
    .UseHttpsRedirection();
